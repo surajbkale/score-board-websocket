@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import { matchesRouter } from "./routes/matches.js";
 dotenv.config();
 
 const app = express();
@@ -9,6 +10,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("server is healthy");
 });
+
+app.use("/matches", matchesRouter);
 
 const PORT = process.env.PORT || 8000;
 
