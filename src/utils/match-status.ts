@@ -1,6 +1,16 @@
 import { MATCH_STATUS } from "../validation/matches.js";
 
-export function getMatcheStatus(
+type MatchStatus = (typeof MATCH_STATUS)[keyof typeof MATCH_STATUS];
+
+type MatchLike = {
+  startTime: Date | string | number;
+  endTime: Date | string | number;
+  status: MatchStatus;
+};
+
+type updateStatusFn = (status: MatchStatus) => void | Promise<void>;
+
+export function getMatchStatus(
   startTime: Date,
   endTime: Date,
   now = new Date(),
@@ -23,8 +33,14 @@ export function getMatcheStatus(
   return MATCH_STATUS.LIVE;
 }
 
-export async function syncMatchStatus(match: any, updateStatus: any) {
-  const nextStatus = getMatcheStatus(match.startTime, match.endTime);
+export async function syncMatchStatus(
+  match: MatchLike,
+  updateStatus: updateStatusFn,
+) {
+  const nextStatus = getMatchStatus(
+    match.startTime as Date,
+    match.endTime as Date,
+  );
   if (!nextStatus) {
     return match.status;
   }
