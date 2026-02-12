@@ -3,6 +3,7 @@ import http from "http";
 import dotenv from "dotenv";
 import { matchesRouter } from "./routes/matches.js";
 import { attachWebSocketServer } from "./ws/server.js";
+import { securityMiddleware } from "./arcjet.js";
 dotenv.config();
 
 const PORT = Number(process.env.PORT) || 8000;
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
   res.send("server is healthy");
 });
 
+app.use(securityMiddleware());
 app.use("/matches", matchesRouter);
 
 const broadcastMatchCreated = attachWebSocketServer(server);

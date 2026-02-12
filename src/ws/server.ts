@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer, type RawData } from "ws";
 import type { Server } from "http";
+import { wsArcjet } from "../arcjet.js";
 
 declare module "ws" {
   interface WebSocket {
@@ -26,7 +27,27 @@ export function attachWebSocketServer(server: Server) {
     maxPayload: 1024 * 1024,
   });
 
-  wss.on("connection", (socket) => {
+  wss.on("connection", async (socket, req) => {
+    if (wsArcjet) {
+      try {
+        const decision = await wsArcjet.protect(req);
+
+        if (decision.isDenied()) {
+          const code = decision.reason.isRateLimit() ? 1013 : 1008;
+          const reason = decision.reason.isRateLimit()
+            ? "Rate Limit Exceeded"
+            : "Access Denied";
+
+          socket.close(code, reason);
+          return;
+        }
+      } catch (error) {
+        console.error("WS Connection error", error);
+        socket.close(1011, "Server Security Error");
+        return;
+      }
+    }
+
     socket.isAlive = true;
     socket.on("pong", () => {
       socket.isAlive = true;
@@ -46,7 +67,7 @@ export function attachWebSocketServer(server: Server) {
 
   wss.on("close", () => clearInterval(interval));
 
-  function broadcastMatchCreated(match: any) {
+  function broadcastMatchCreated(match: { [key: string]: unknown }) {
     broadcast(wss, { type: "match_created", data: match });
   }
 
