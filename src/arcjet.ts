@@ -44,17 +44,17 @@ export function securityMiddleware() {
       if (decision.isDenied()) {
         if (decision.reason.isRateLimit()) {
           return res.status(429).json({
-            message: "Too many requests.",
+            errir: "Too many requests.",
           });
         }
         return res.status(403).json({
-          message: "Forbidden",
+          error: "Forbidden",
         });
       }
     } catch (error) {
       console.error("Arcjet middleware error", error);
-      return res.json(503).json({
-        message: "Service Unavailable",
+      return res.status(503).json({
+        error: "Service Unavailable",
       });
     }
 
